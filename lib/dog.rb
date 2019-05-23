@@ -26,20 +26,25 @@ class Dog
   end
 
   def save
-    sql = <<-SQL
-      INSERT INTO dogs (name, breed)
-      VALUES (?, ?)
-    SQL
-    DB[:conn].execute(sql, self.name, self.breed)
-
+    if self.id
+      self.update
+    else
+      sql = <<-SQL
+        INSERT INTO dogs (name, breed)
+        VALUES (?, ?)
+      SQL
+      DB[:conn].execute(sql, self.name, self.breed)
+      #Database creates unique id, now we need to get it and save it in object.
+      @id = DB[:conn].execute("SELECT last_insert_rowid()FROM dogs")[0][0]
+    end
     self
   end
 
   def self.create(hash)
-    new_dog = Dog.new(hash) #Ask question about keyword.
-    hash.each do |key, attribute|
-      new_dog.send("#{key}=", attribute)
-    end
+    new_dog = Dog.new(hash)
+    # hash.each do |key, attribute|
+    #   new_dog.send("#{key}=", attribute)
+    # end
     new_dog.save
   end
 
@@ -62,7 +67,6 @@ class Dog
       LIMIT 1
     SQL
     dog_array = DB[:conn].execute(sql, name, breed)
-    binding.pry
     if !dog_array.empty?
       dog_info = dog_array[0]
       dog = new_from_db(dog_info)
@@ -73,7 +77,7 @@ class Dog
   end
 
   def self.new_from_db(array)
-    Dog.new(id: array[0], name: array[1], breed: [2])
+    Dog.new(id: array[0], name: array[1], breed: array[2])
   end
 
   def update
