@@ -59,10 +59,11 @@ class Dog
       SELECT *
       FROM dogs
       WHERE name = ? AND breed = ?
+      LIMIT 1
     SQL
     dog_array = DB[:conn].execute(sql, name, breed)
+    binding.pry
     if !dog_array.empty?
-      binding.pry
       dog_info = dog_array[0]
       dog = new_from_db(dog_info)
     else
